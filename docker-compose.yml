@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb
+    container_name: influxdb-monitoring
+    ports:
+      - 8086:8086
+    volumes:
+      - influxdb-vol:/var/lib/influxdb2
+    env_file:
+      - ./env/influx.env
+    networks:
+      - monitoring-net
+  telegraf:
+    image: telegraf
+    container_name: telegraf-monitoring
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    env_file:
+      # telegraf needs influxDB env variables to authenticate
+      - ./env/influx.env
+    networks:
+      - monitoring-net
+    depends_on:
+      - influxdb
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana-monitoring
+    ports:
+      - 3000:3000
+    env_file:
+      - ./env/grafana.env
+    volumes:
+      # Volume to store the grafana data
+      - grafana-vol:/var/lib/grafana
+      # Volume to provision datasource
+      - ./grafana/grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+      # Volume to add dashboard definition
+      - ./grafana/dashboard-definition.json:/var/lib/grafana/dashboards/dashboard-definition.json
+      # Volume to provision dashboard
+      - ./grafana/grafana-dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+    networks:
+      - monitoring-net
+    depends_on:
+      - influxdb
+
+networks:
+  monitoring-net:
+
+volumes:
+  influxdb-vol:
+  grafana-vol:

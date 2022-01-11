@@ -1,0 +1,27 @@
+# Provisions influxdb as a datasource with Flux and InfluxQL support
+
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB_v2_Flux
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    secureJsonData:
+      token: $INFLUXDB_TOKEN
+    jsonData:
+      version: Flux
+      organization: $INFLUXDB_ORG
+      defaultBucket: $INFLUXDB_BUCKET
+      tlsSkipVerify: true
+
+  - name: InfluxDB_v2_InfluxQL
+    type: influxdb
+    access: proxy
+    database: $INFLUXDB_BUCKET
+    url: http://influxdb:8086
+    jsonData:
+      httpMode: GET
+      httpHeaderName1: 'Authorization'
+    secureJsonData:
+      httpHeaderValue1: Token $INFLUXDB_TOKEN
